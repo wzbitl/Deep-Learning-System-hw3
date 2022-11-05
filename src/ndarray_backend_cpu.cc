@@ -63,7 +63,31 @@ void Compact(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> sha
    *  function will implement here, so we won't repeat this note.)
    */
   /// BEGIN YOUR SOLUTION
-  
+  size_t ndim = shape.size();
+  std::vector<size_t> dim_idx(ndim, 0);
+  size_t total_num = 1;
+  for (auto& s: shape) {
+    total_num *= s;
+  }
+
+  size_t a_idx = 0, cnt = 0;
+  while (cnt < total_num) {
+    a_idx = 0;
+    for (size_t i = 0; i < ndim; i++) {
+      a_idx += strides[i] * dim_idx[i];
+    }
+    out->ptr[cnt++] = a.ptr[a_idx + offset];
+    dim_idx[ndim-1]++;
+    int carry = 0;
+    for (int i = ndim - 1; i >= 0; i--) {
+      int sum = dim_idx[i] + carry;
+      carry = sum / shape[i];
+      dim_idx[i] = sum % shape[i];
+      if (carry == 0) {
+          break;
+      }
+    }
+  }
   /// END YOUR SOLUTION
 }
 
@@ -80,7 +104,31 @@ void EwiseSetitem(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t
    *   offset: offset of the *out* array (not a, which has zero offset, being compact)
    */
   /// BEGIN YOUR SOLUTION
-  
+  size_t ndim = shape.size();
+  std::vector<size_t> dim_idx(ndim, 0);
+  size_t total_num = 1;
+  for (auto& s: shape) {
+    total_num *= s;
+  }
+
+  size_t a_idx = 0, cnt = 0;
+  while (cnt < total_num) {
+    a_idx = 0;
+    for (size_t i = 0; i < ndim; i++) {
+      a_idx += strides[i] * dim_idx[i];
+    }
+    out->ptr[a_idx + offset] = a.ptr[cnt++];
+    dim_idx[ndim-1]++;
+    int carry = 0;
+    for (int i = ndim - 1; i >= 0; i--) {
+      int sum = dim_idx[i] + carry;
+      carry = sum / shape[i];
+      dim_idx[i] = sum % shape[i];
+      if (carry == 0) {
+          break;
+      }
+    }
+  }
   /// END YOUR SOLUTION
 }
 
@@ -101,7 +149,27 @@ void ScalarSetitem(const size_t size, scalar_t val, AlignedArray* out, std::vect
    */
 
   /// BEGIN YOUR SOLUTION
-  
+  size_t ndim = shape.size();
+  std::vector<size_t> dim_idx(ndim, 0);
+
+  size_t a_idx = 0;
+  for (size_t cnt = 0; cnt < size; cnt++) {
+    a_idx = 0;
+    for (size_t i = 0; i < ndim; i++) {
+      a_idx += strides[i] * dim_idx[i];
+    }
+    out->ptr[a_idx + offset] = val;
+    dim_idx[ndim-1]++;
+    int carry = 0;
+    for (int i = ndim - 1; i >= 0; i--) {
+      int sum = dim_idx[i] + carry;
+      carry = sum / shape[i];
+      dim_idx[i] = sum % shape[i];
+      if (carry == 0) {
+          break;
+      }
+    }
+  }
   /// END YOUR SOLUTION
 }
 
